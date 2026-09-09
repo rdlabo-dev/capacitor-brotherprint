@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@rdlabo/capacitor-brotherprint": [
+        "./src/index.ts"
+      ]
+    }
+  },
+  "files": [],
+  "include": [
+    "examples/*.ts"
+  ]
+}

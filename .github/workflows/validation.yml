@@ -32,6 +32,6 @@ jobs:
             ${{ runner.os }}-angular-${{ hashFiles('demo/package-lock.json') }}-
             ${{ runner.os }}-angular-
       - run: npm install
-      - run: npm run build
+      - run: npm test
       - run: npm ci && npm run test:ci
         working-directory: demo

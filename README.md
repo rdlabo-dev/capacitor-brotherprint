@@ -50,6 +50,12 @@ Amazon Affiliate Links: **https://amzn.to/3AiiOFT**
 
 ※1 Due to low Bluetooth version, connection is not possible with iOS. Ref: https://okbizcs.okwave.jp/brother/qa/q9932082.html
 
+## JavaScript helpers
+
+Functions provide discovery results and model/connection choices around the existing
+plugin API, without Angular or Ionic dependencies. See
+[connection management](docs/connection-management.md) for usage.
+
 ## API
 
 <docgen-index>

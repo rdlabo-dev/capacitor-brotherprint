@@ -50,6 +50,13 @@ Amazon Affiliate Links: **https://amzn.to/3AiiOFT**
 
 ※1 Due to low Bluetooth version, connection is not possible with iOS. Ref: https://okbizcs.okwave.jp/brother/qa/q9932082.html
 
+## JavaScript helpers
+
+`BrotherPrinterSession` owns a print screen's discovery results, print listeners and
+shutdown. Pure functions provide model/connection choices, and stateless connection
+helpers remain available. None require Angular or Ionic. See
+[connection management](docs/connection-management.md) for usage.
+
 ## API
 
 <docgen-index>

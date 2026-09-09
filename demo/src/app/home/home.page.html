@@ -10,7 +10,7 @@
       <ion-item>
         <ion-select label="Model" [(ngModel)]="useModel" name="useModel">
           @for (item of modelNames; track item) {
-            <ion-select-option [value]="item">{{item}}</ion-select-option>
+          <ion-select-option [value]="item">{{item}}</ion-select-option>
           }
         </ion-select>
       </ion-item>
@@ -18,31 +18,31 @@
   </ion-list>
 
   @if (useModel().includes('QL')) {
-    <ion-list [inset]="true">
-      <ion-item-group>
-        <ion-item>
-          <ion-select label="LabelName" [(ngModel)]="useLabel" name="useLabel">
-            @for (item of labelNames; track item) {
-              <ion-select-option [value]="item">{{item}}</ion-select-option>
-            }
-          </ion-select>
-        </ion-item>
-      </ion-item-group>
-    </ion-list>
+  <ion-list [inset]="true">
+    <ion-item-group>
+      <ion-item>
+        <ion-select label="LabelName" [(ngModel)]="useLabel" name="useLabel">
+          @for (item of labelNames; track item) {
+          <ion-select-option [value]="item">{{item}}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </ion-item-group>
+  </ion-list>
   } @else if (useModel().includes('TD')) {
   <ion-list [inset]="true">
     <ion-item-group>
       <ion-item>
         <ion-select label="paperType" [(ngModel)]="paperType" name="paperType">
           @for (item of paperTypes; track item) {
-            <ion-select-option [value]="item">{{item}}</ion-select-option>
+          <ion-select-option [value]="item">{{item}}</ion-select-option>
           }
         </ion-select>
       </ion-item>
       <ion-item>
         <ion-select label="paperUnit" [(ngModel)]="paperUnit" name="paperUnit">
           @for (item of paperUnits; track item) {
-            <ion-select-option [value]="item">{{item}}</ion-select-option>
+          <ion-select-option [value]="item">{{item}}</ion-select-option>
           }
         </ion-select>
       </ion-item>
@@ -147,42 +147,42 @@
       </ion-item>
     </ion-item-group>
   </ion-list>
-}
+  }
 
   <ion-list [inset]="true">
     <ion-item-group>
       @if (this.platform.is('android')) {
-        <ion-item button="true" (click)="searchPrinter(printerPortEnum.usb)"><ion-label>Search USB</ion-label></ion-item>
+      <ion-item button="true" (click)="searchPrinter(printerPortEnum.usb)"><ion-label>Search USB</ion-label></ion-item>
       }
       <ion-item button="true" (click)="searchPrinter(printerPortEnum.wifi)"
-      ><ion-label>Search WiFi</ion-label></ion-item
+        ><ion-label>Search WiFi</ion-label></ion-item
       >
       <ion-item button="true" (click)="searchPrinter(printerPortEnum.bluetooth)"
-      ><ion-label>Search Bluetooth</ion-label></ion-item
+        ><ion-label>Search Bluetooth</ion-label></ion-item
       >
       <ion-item button="true" (click)="searchPrinter(printerPortEnum.bluetoothLowEnergy)"
-      ><ion-label>Search Bluetooth Low Battery</ion-label></ion-item
+        ><ion-label>Search Bluetooth Low Battery</ion-label></ion-item
       >
     </ion-item-group>
   </ion-list>
 
   @if (printers().length > 0) { @for (channel of printers(); track channel.serialNumber;) {
-    <ion-list [inset]="true">
-      <ion-item-group>
-        <ion-item><ion-label>port</ion-label><ion-text>{{channel.port}}</ion-text></ion-item>
-        <ion-item><ion-label>modelName</ion-label><ion-text>{{channel.modelName}}</ion-text></ion-item>
-        <ion-item><ion-label>serialNumber</ion-label><ion-text>{{channel.serialNumber}}</ion-text></ion-item>
-        <ion-item><ion-label>macAddress</ion-label><ion-text>{{channel.macAddress}}</ion-text></ion-item>
-        <ion-item><ion-label>nodeName</ion-label><ion-text>{{channel.nodeName}}</ion-text></ion-item>
-        <ion-item><ion-label>location</ion-label><ion-text>{{channel.location}}</ion-text></ion-item>
-        <ion-item><ion-label>channelInfo</ion-label><ion-text>{{channel.channelInfo}}</ion-text></ion-item>
-        <ion-item button="true" color="warning" (click)="isChannelAvailable(channel)"
+  <ion-list [inset]="true">
+    <ion-item-group>
+      <ion-item><ion-label>port</ion-label><ion-text>{{channel.port}}</ion-text></ion-item>
+      <ion-item><ion-label>modelName</ion-label><ion-text>{{channel.modelName}}</ion-text></ion-item>
+      <ion-item><ion-label>serialNumber</ion-label><ion-text>{{channel.serialNumber}}</ion-text></ion-item>
+      <ion-item><ion-label>macAddress</ion-label><ion-text>{{channel.macAddress}}</ion-text></ion-item>
+      <ion-item><ion-label>nodeName</ion-label><ion-text>{{channel.nodeName}}</ion-text></ion-item>
+      <ion-item><ion-label>location</ion-label><ion-text>{{channel.location}}</ion-text></ion-item>
+      <ion-item><ion-label>channelInfo</ion-label><ion-text>{{channel.channelInfo}}</ion-text></ion-item>
+      <ion-item button="true" color="warning" (click)="isChannelAvailable(channel)"
         ><ion-label>Validate channel</ion-label></ion-item
-        >
-        <ion-item button="true" color="primary" (click)="print(channel)"
+      >
+      <ion-item button="true" color="primary" (click)="print(channel)"
         ><ion-label>Print demo label</ion-label></ion-item
-        >
-      </ion-item-group>
-    </ion-list>
+      >
+    </ion-item-group>
+  </ion-list>
   } }
 </ion-content>

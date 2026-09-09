@@ -28,7 +28,9 @@
     "release": "np --no-tests --no-publish",
     "replace:production": "ts-node -P scripts/tsconfig.json scripts/release -- production",
     "replace:development": "ts-node -P scripts/tsconfig.json scripts/release -- development",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:types": "tsc -p tsconfig.test.json",
+    "test": "npm run build && npm run test:types && node --test tests/printer.test.cjs"
   },
   "author": "Masahiko Sakakibara<sakakibara@rdlabo.jp>",
   "license": "MIT",

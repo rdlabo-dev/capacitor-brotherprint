@@ -1,7 +1,7 @@
 {
   "name": "@rdlabo/capacitor-brotherprint",
   "private": false,
-  "version": "8.2.0",
+  "version": "8.2.1",
   "description": "Capacitor plugin for Brother Print SDK",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

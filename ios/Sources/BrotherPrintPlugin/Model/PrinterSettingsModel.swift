@@ -4,7 +4,7 @@ import Capacitor
 
 class PrinterSettingsModel {
     static func TDModelSettings(_ call: CAPPluginCall, printSettings: BRLMTDPrintSettings) -> BRLMTDPrintSettings {
-        let baseSettings = self.BaseModelSettings(call, printSettings: printSettings)
+        let baseSettings = self.baseModelSettings(call, printSettings: printSettings)
 
         let margins = BrotherModel.getMargin(call.getDouble("marginTop", 0), call.getDouble("marginRight", 0), call.getDouble("marginBottom", 0), call.getDouble("marginLeft", 0))
 
@@ -33,7 +33,7 @@ class PrinterSettingsModel {
     }
 
     static func QLModelSettings(_ call: CAPPluginCall, printSettings: BRLMQLPrintSettings) -> BRLMQLPrintSettings {
-        let baseSettings = self.BaseModelSettings(call, printSettings: printSettings)
+        let baseSettings = self.baseModelSettings(call, printSettings: printSettings)
         baseSettings.labelSize = BrotherModel.getLabelSize(from: call.getString("labelName", "rollW62"))
 
         if let autoCut = call.getBool("autoCut") ?? nil {
@@ -47,98 +47,94 @@ class PrinterSettingsModel {
         return baseSettings
     }
 
-    static func BaseModelSettings<T: BRLMPrintImageSettings>(_ call: CAPPluginCall, printSettings: T) -> T {
+    static func baseModelSettings<T: BRLMPrintImageSettings>(_ call: CAPPluginCall, printSettings: T) -> T {
         printSettings.numCopies = UInt(call.getInt("numberOfCopies", 1))
 
+        let scaleModes: [String: BRLMPrintSettingsScaleMode] = [
+            "ActualSize": .actualSize,
+            "FitPageAspect": .fitPageAspect,
+            "FitPaperAspect": .fitPaperAspect,
+            "ScaleValue": .scaleValue
+        ]
         if let scaleMode = call.getString("scaleMode") ?? nil {
-            switch scaleMode {
-            case "ActualSize":
-                printSettings.scaleMode = BRLMPrintSettingsScaleMode.actualSize
-            case "FitPageAspect":
-                printSettings.scaleMode = BRLMPrintSettingsScaleMode.fitPageAspect
-            case "FitPaperAspect":
-                printSettings.scaleMode = BRLMPrintSettingsScaleMode.fitPaperAspect
-            case "ScaleValue":
-                printSettings.scaleMode = BRLMPrintSettingsScaleMode.scaleValue
-                if call.getInt("scaleValue") != nil {
-                    printSettings.scaleValue = CGFloat(call.getFloat("scaleValue")!)
+            if let mapped = scaleModes[scaleMode] {
+                printSettings.scaleMode = mapped
+                if scaleMode == "ScaleValue" {
+                    if call.getInt("scaleValue") != nil {
+                        printSettings.scaleValue = CGFloat(call.getFloat("scaleValue")!)
+                    }
                 }
-            default: break
             }
         }
 
+        let halftones: [String: BRLMPrintSettingsHalftone] = [
+            "Threshold": .threshold,
+            "ErrorDiffusion": .errorDiffusion,
+            "PatternDither": .patternDither
+        ]
         if let halftone = call.getString("halftone") ?? nil {
-            switch halftone {
-            case "Threshold":
-                printSettings.halftone = BRLMPrintSettingsHalftone.threshold
-                if call.getInt("halftoneThreshold") != nil {
-                    printSettings.halftoneThreshold = UInt8(call.getInt("halftoneThreshold")!)
+            if let mapped = halftones[halftone] {
+                printSettings.halftone = mapped
+                if halftone == "Threshold" {
+                    if call.getInt("halftoneThreshold") != nil {
+                        printSettings.halftoneThreshold = UInt8(call.getInt("halftoneThreshold")!)
+                    }
                 }
-            case "ErrorDiffusion":
-                printSettings.halftone = BRLMPrintSettingsHalftone.errorDiffusion
-            case "PatternDither":
-                printSettings.halftone = BRLMPrintSettingsHalftone.patternDither
-            default: break
             }
         }
 
+        let imageRotations: [String: BRLMPrintSettingsRotation] = [
+            "Rotate0": .rotate0,
+            "Rotate90": .rotate90,
+            "Rotate180": .rotate180,
+            "Rotate270": .rotate270
+        ]
         if let imageRotation = call.getString("imageRotation") ?? nil {
-            switch imageRotation {
-            case "Rotate0":
-                printSettings.imageRotation = BRLMPrintSettingsRotation.rotate0
-            case "Rotate90":
-                printSettings.imageRotation = BRLMPrintSettingsRotation.rotate90
-            case "Rotate180":
-                printSettings.imageRotation = BRLMPrintSettingsRotation.rotate180
-            case "Rotate270":
-                printSettings.imageRotation = BRLMPrintSettingsRotation.rotate270
-            default: break
+            if let mapped = imageRotations[imageRotation] {
+                printSettings.imageRotation = mapped
             }
         }
 
+        let verticalAlignments: [String: BRLMPrintSettingsVerticalAlignment] = [
+            "Top": .top,
+            "Center": .center,
+            "Bottom": .bottom
+        ]
         if let verticalAlignment = call.getString("verticalAlignment") ?? nil {
-            switch verticalAlignment {
-            case "Top":
-                printSettings.vAlignment = BRLMPrintSettingsVerticalAlignment.top
-            case "Center":
-                printSettings.vAlignment = BRLMPrintSettingsVerticalAlignment.center
-            case "Bottom":
-                printSettings.vAlignment = BRLMPrintSettingsVerticalAlignment.bottom
-            default: break
+            if let mapped = verticalAlignments[verticalAlignment] {
+                printSettings.vAlignment = mapped
             }
         }
 
+        let horizontalAlignments: [String: BRLMPrintSettingsHorizontalAlignment] = [
+            "Left": .left,
+            "Center": .center,
+            "Right": .right
+        ]
         if let horizontalAlignment = call.getString("horizontalAlignment") ?? nil {
-            switch horizontalAlignment {
-            case "Left":
-                printSettings.hAlignment = BRLMPrintSettingsHorizontalAlignment.left
-            case "Center":
-                printSettings.hAlignment = BRLMPrintSettingsHorizontalAlignment.center
-            case "Right":
-                printSettings.hAlignment = BRLMPrintSettingsHorizontalAlignment.right
-            default: break
+            if let mapped = horizontalAlignments[horizontalAlignment] {
+                printSettings.hAlignment = mapped
             }
         }
 
+        let compressModes: [String: BRLMPrintSettingsCompressMode] = [
+            "None": .none,
+            "Tiff": .tiff,
+            "Mode9": .mode9
+        ]
         if let compressMode = call.getString("compressMode") ?? nil {
-            switch compressMode {
-            case "None":
-                printSettings.compress = BRLMPrintSettingsCompressMode.none
-            case "Tiff":
-                printSettings.compress = BRLMPrintSettingsCompressMode.tiff
-            case "Mode9":
-                printSettings.compress = BRLMPrintSettingsCompressMode.mode9
-            default: break
+            if let mapped = compressModes[compressMode] {
+                printSettings.compress = mapped
             }
         }
 
+        let printQualities: [String: BRLMPrintSettingsPrintQuality] = [
+            "Best": .best,
+            "Fast": .fast
+        ]
         if let printQuality = call.getString("printQuality") ?? nil {
-            switch printQuality {
-            case "Best":
-                printSettings.printQuality = BRLMPrintSettingsPrintQuality.best
-            case "Fast":
-                printSettings.printQuality = BRLMPrintSettingsPrintQuality.fast
-            default: break
+            if let mapped = printQualities[printQuality] {
+                printSettings.printQuality = mapped
             }
         }
 

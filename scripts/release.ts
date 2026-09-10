@@ -23,7 +23,7 @@ if (!environment.includes((process.argv as string[])[process.argv.length - 1])) 
 }
 
 const currentEnv = process.argv[process.argv.length - 1] as Env;
-const oppositeEnv: Env = environment.find((env) => env !== currentEnv)!;
+const oppositeEnv: Env = currentEnv === 'development' ? 'production' : 'development';
 
 (() => {
   const content = readFileSync(modulePath, 'utf-8');

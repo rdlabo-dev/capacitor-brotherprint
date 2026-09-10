@@ -80,7 +80,7 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
 
             if modelName.hasPrefix("QL") {
                 guard
-                    let _printSettings = BRLMQLPrintSettings(defaultPrintSettingsWith: printerModel)
+                    let qlPrintSettings = BRLMQLPrintSettings(defaultPrintSettingsWith: printerModel)
                 else {
                     printerDriver.closeChannel()
                     self.notifyListeners(BrotherPrinterEvent.onPrintError.rawValue, data: [
@@ -90,11 +90,11 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.reject("Error - Create BRLMQLPrintSettings with " + modelName + " is failed.")
                     return
                 }
-                printSettings = PrinterSettingsModel.QLModelSettings(call, printSettings: _printSettings)
+                printSettings = PrinterSettingsModel.QLModelSettings(call, printSettings: qlPrintSettings)
 
             } else if modelName.hasPrefix("TD") {
                 guard
-                    let _printSettings = BRLMTDPrintSettings(defaultPrintSettingsWith: printerModel)
+                    let tdPrintSettings = BRLMTDPrintSettings(defaultPrintSettingsWith: printerModel)
                 else {
                     printerDriver.closeChannel()
                     self.notifyListeners(BrotherPrinterEvent.onPrintError.rawValue, data: [
@@ -104,7 +104,7 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.reject("Error - Create BRLMTDPrintSettings with " + modelName + " is failed.")
                     return
                 }
-                printSettings = PrinterSettingsModel.TDModelSettings(call, printSettings: _printSettings)
+                printSettings = PrinterSettingsModel.TDModelSettings(call, printSettings: tdPrintSettings)
 
             } else {
                 printerDriver.closeChannel()

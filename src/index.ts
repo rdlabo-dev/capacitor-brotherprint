@@ -33,9 +33,9 @@ function queueConnection<T>(run: () => Promise<T>): Promise<T> {
 /** Collect discovery results, waiting for earlier helper calls to finish. */
 export function searchBrotherPrinters(
   options: BRLMSearchOption,
-  model?: BRLMPrinterModelName,
+  _model?: BRLMPrinterModelName,
 ): Promise<BRLMChannelResult[]> {
-  return queueConnection(() => discoverPrinters(options, model));
+  return queueConnection(() => discoverPrinters(options));
 }
 
 /**
@@ -71,14 +71,11 @@ export function checkBrotherPrinterChannel(channel: Pick<BRLMChannelResult, 'por
 
 async function discoverPrinters(
   options: BRLMSearchOption,
-  model?: BRLMPrinterModelName,
   active: () => boolean = () => true,
 ): Promise<BRLMChannelResult[]> {
   const printers: BRLMChannelResult[] = [];
   const listener = await BrotherPrint.addListener(BrotherPrintEventsEnum.onPrinterAvailable, (printer) => {
     if (printer.port !== options.port) return;
-    if (printer.port !== BRLMPrinterPort.usb && model !== undefined && brotherPrinterModel(printer.modelName) !== model)
-      return;
     const index = printers.findIndex(
       (current) => current.port === printer.port && current.channelInfo === printer.channelInfo,
     );
@@ -104,7 +101,7 @@ async function preparePrinters(
     const available = await BrotherPrint.isChannelAvailable(previous);
     if (available.result) return [previous];
   }
-  return active() ? discoverPrinters(options, model, active) : [];
+  return active() ? discoverPrinters(options, active) : [];
 }
 
 export interface BrotherPrinterEvents {
@@ -149,8 +146,8 @@ export class BrotherPrinterSession {
     return this.#printers;
   }
 
-  search(options: BRLMSearchOption, model?: BRLMPrinterModelName): Promise<readonly BRLMChannelResult[]> {
-    return this.#discover(() => discoverPrinters(options, model, () => !this.#closed));
+  search(options: BRLMSearchOption, _model?: BRLMPrinterModelName): Promise<readonly BRLMChannelResult[]> {
+    return this.#discover(() => discoverPrinters(options, () => !this.#closed));
   }
 
   prepare(

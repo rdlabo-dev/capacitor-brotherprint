@@ -85,6 +85,7 @@ describe('searchBrotherPrinters', () => {
     assert.deepEqual(await searchBrotherPrinters(options, Model.QL_820NWB), [
       { ...channel, nodeName: 'updated' },
       { ...channel, channelInfo: '192.0.2.2' },
+      { ...channel, modelName: 'TD-2350D', channelInfo: '192.0.2.3' },
     ]);
     assert.deepEqual(plugin.search.mock.calls[0].arguments, [options]);
     assert.equal(remove.mock.callCount(), 1);
@@ -123,6 +124,22 @@ describe('searchBrotherPrinters', () => {
     const usb = { ...channel, port: Port.usb, channelInfo: '', modelName: '' };
     plugin.search = async () => emit(usb);
     assert.deepEqual(await searchBrotherPrinters({ port: Port.usb, searchDuration: 10 }, Model.QL_820NWB), [usb]);
+  });
+  it('keeps multiple candidates including different models', async () => {
+    const { emit } = setup();
+    const first = { ...channel, port: Port.bluetooth, modelName: 'QL-820NWB9475', channelInfo: 'SN-9475' };
+    const second = { ...channel, port: Port.bluetooth, modelName: 'QL-820NWB1234', channelInfo: 'SN-1234' };
+    const other = { ...channel, port: Port.bluetooth, modelName: 'TD-2350D_2991', channelInfo: 'SN-2991' };
+    plugin.search = async () => {
+      emit(first);
+      emit(second);
+      emit(other);
+    };
+    assert.deepEqual(await searchBrotherPrinters({ port: Port.bluetooth, searchDuration: 10 }, Model.QL_820NWB), [
+      first,
+      second,
+      other,
+    ]);
   });
 });
 

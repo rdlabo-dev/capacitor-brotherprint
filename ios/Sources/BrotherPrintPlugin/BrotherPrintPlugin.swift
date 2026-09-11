@@ -203,26 +203,41 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    private func checkBLEChannel(_ call: CAPPluginCall) {
-        DispatchQueue.global().async {
-            let searcher = BRLMPrinterSearcher.startBluetoothSearch()
-            if searcher.error.code != BRLMPrinterSearchErrorCode.noError {
-                call.reject("Error - startBluetoothSearch: " + PrinterSearchErrorModel.fetchChannelErrorCode(error: searcher.error.code))
-                return
+    func checkBLEChannel(
+        _ call: CAPPluginCall,
+        scan: @escaping () -> (channels: [BRLMChannel], error: BRLMPrinterSearchErrorCode) = {
+            let result = BRLMPrinterSearcher.startBluetoothSearch()
+            return (result.channels, result.error.code)
+        },
+        startAccessorySearch: @escaping (@escaping (BRLMPrinterSearchResult) -> Void) -> Void = BRLMPrinterSearcher.startBluetoothAccessorySearch
+    ) {
+        DispatchQueue.main.async {
+            var cancelled = false
+            self.cancelAccessorySearch = {
+                cancelled = true
+                self.cancelAccessorySearch = nil
+                call.reject("Bluetooth accessory search cancelled.")
             }
-            if searcher.channels.isEmpty {
+            DispatchQueue.global().async {
+                let result = scan()
                 DispatchQueue.main.async {
-                    self.searchBluetoothAccessory(call)
+                    guard !cancelled else { return }
+                    self.cancelAccessorySearch = nil
+                    guard result.error == .noError else {
+                        call.reject("Error - startBluetoothSearch: " + PrinterSearchErrorModel.fetchChannelErrorCode(error: result.error))
+                        return
+                    }
+                    if result.channels.isEmpty {
+                        self.searchBluetoothAccessory(call, startSearch: startAccessorySearch)
+                        return
+                    }
+                    for channel in result.channels {
+                        self.notifyListeners(BrotherPrinterEvent.onPrinterAvailable.rawValue, data: self.chanelToPrinter(port: "bluetooth", channel: channel))
+                    }
+                    call.resolve()
                 }
-                return
             }
-            for channel in searcher.channels {
-                NSLog(channel.channelInfo)
-                self.notifyListeners(BrotherPrinterEvent.onPrinterAvailable.rawValue, data: self.chanelToPrinter(port: "bluetooth", channel: channel))
-            }
-            call.resolve()
         }
-
     }
 
     func searchBluetoothAccessory(

@@ -55,7 +55,7 @@ For BLE-capable printers, use `port: BRLMPrinterPort.bluetoothLowEnergy`. On iOS
 
 On Android, pair a Bluetooth printer in the system settings before calling `search` with `bluetooth`; the SDK lists paired printers and does not provide the iOS accessory picker. Bluetooth and BLE searches resolve after the search finishes, or reject on SDK errors. Android 12 and later request Nearby devices permissions; Android 11 and earlier request location permission for BLE. `isChannelAvailable` returns `false` when Bluetooth permission is missing.
 
-`searchDuration` applies to `wifi` and `bluetoothLowEnergy`. `usb` is Android only. If nothing is found, you get no error and no printers. Signatures are on the [API](/docs/api#brlmsearchoption) page.
+`searchDuration` applies to `wifi`, `bluetoothLowEnergy`, and the iOS `bluetooth` accessory-picker wait. `usb` is Android only. Completed Wi-Fi/BLE searches with no results resolve without printers; iOS accessory-picker errors, cancellation, and wait timeouts reject the search. Cancellation also rejects an in-progress iOS Bluetooth initial scan and prevents its late result from opening the picker. Signatures are on the [API](/docs/api#brlmsearchoption) page.
 
 On Android, Bluetooth Classic searches return paired devices. To include only devices that report the Bluetooth Imaging/Printer class:
 

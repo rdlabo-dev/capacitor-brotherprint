@@ -3,6 +3,40 @@ import Capacitor
 @testable import BrotherPrintPlugin
 
 class BluetoothAccessorySearchTests: XCTestCase {
+    func testCancellationDuringInitialScanDoesNotOpenPicker() {
+        let scanStarted = expectation(description: "Initial scan started")
+        let scanFinished = expectation(description: "Initial scan returned")
+        let pickerOpened = expectation(description: "Cancelled scan must not open picker")
+        pickerOpened.isInverted = true
+        let releaseScan = DispatchSemaphore(value: 0)
+        let plugin = BrotherPrintPlugin()
+        var rejections = 0
+        let call = CAPPluginCall(callbackId: "initial-scan", methodName: "search", options: [:], success: { _, _ in
+            XCTFail("Cancelled search must not resolve")
+        }, error: { error in
+            rejections += 1
+            XCTAssertTrue(error?.message.contains("cancelled") == true)
+        })!
+        plugin.checkBLEChannel(call, scan: {
+            scanStarted.fulfill()
+            XCTAssertEqual(releaseScan.wait(timeout: .now() + 3), .success)
+            scanFinished.fulfill()
+            return ([], .noError)
+        }, startAccessorySearch: { _ in
+            pickerOpened.fulfill()
+        })
+        wait(for: [scanStarted], timeout: 3)
+        let cancel = CAPPluginCall(callbackId: "stop", methodName: "cancelSearchBluetoothPrinter", options: [:], success: { _, _ in
+            releaseScan.signal()
+        }, error: { _ in
+            XCTFail("Cancellation must resolve")
+        })!
+        plugin.cancelSearchBluetoothPrinter(cancel)
+        wait(for: [scanFinished], timeout: 3)
+        wait(for: [pickerOpened], timeout: 0.2)
+        XCTAssertEqual(rejections, 1)
+    }
+
     func testMissingPickerCallbackTimesOutAndDoesNotOpenAnotherPicker() {
         let timedOut = expectation(description: "Search rejects without a picker callback")
         let plugin = BrotherPrintPlugin()

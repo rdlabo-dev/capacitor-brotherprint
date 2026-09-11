@@ -165,9 +165,13 @@ search timeout releases the queue early. Do not mix concurrent raw `BrotherPrint
 or connection-check calls with these helpers: raw calls bypass this queue and native
 events have no request ID. Printing also remains outside this queue; await connection
 preparation before calling `printImage`.
-The optional model filters non-USB results; USB results are retained even when the SDK
-returns an empty model or address. Connection choices do not extend native support;
-consult the existing README and SDK installation instructions.
+Discovery keeps every matching-port result, including different models; it does not
+exclude by model name. Results with a different port are dropped, and the same
+port/address is deduplicated. An optional model argument on `searchBrotherPrinters`
+and `session.search` is retained for compatibility and is unused. USB results are
+retained even when the SDK returns an empty model or address. Connection choices do
+not extend native support; consult the existing README and SDK installation
+instructions.
 
 When using the stateless functions, the app owns loading indicators, selection UI and caching. Pass its saved channel to
 `prepareBrotherPrinters`, select a returned channel, and call the existing

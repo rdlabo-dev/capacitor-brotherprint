@@ -2,6 +2,55 @@ import XCTest
 import Capacitor
 @testable import BrotherPrintPlugin
 
+class BluetoothAccessorySearchTests: XCTestCase {
+    func testMissingPickerCallbackTimesOutAndDoesNotOpenAnotherPicker() {
+        let timedOut = expectation(description: "Search rejects without a picker callback")
+        let plugin = BrotherPrintPlugin()
+        var starts = 0
+        let call = CAPPluginCall(callbackId: "timeout", methodName: "search", options: ["searchDuration": 1], success: { _, _ in
+            XCTFail("Search must reject")
+        }, error: { error in
+            XCTAssertTrue(error?.message.contains("timed out") == true)
+            let retry = CAPPluginCall(callbackId: "retry", methodName: "search", options: [:], success: { _, _ in
+                XCTFail("A second picker must not open")
+            }, error: { error in
+                XCTAssertTrue(error?.message.contains("still open") == true)
+            })!
+            plugin.searchBluetoothAccessory(retry) { _ in starts += 1 }
+            XCTAssertEqual(starts, 1)
+            timedOut.fulfill()
+        })!
+        DispatchQueue.main.async {
+            plugin.searchBluetoothAccessory(call) { _ in starts += 1 }
+        }
+        wait(for: [timedOut], timeout: 3)
+    }
+
+    func testCancellationRejectsOnlyOnceEvenAfterDeadline() {
+        let finished = expectation(description: "Cancellation stays settled after the deadline")
+        let plugin = BrotherPrintPlugin()
+        var rejections = 0
+        let call = CAPPluginCall(callbackId: "cancel", methodName: "search", options: ["searchDuration": 1], success: { _, _ in
+            XCTFail("Search must reject")
+        }, error: { error in
+            rejections += 1
+            XCTAssertTrue(error?.message.contains("cancelled") == true)
+        })!
+        let cancel = CAPPluginCall(callbackId: "stop", methodName: "cancelSearchBluetoothPrinter", options: [:], success: { _, _ in }, error: { _ in
+            XCTFail("Cancellation must resolve")
+        })!
+        DispatchQueue.main.async {
+            plugin.searchBluetoothAccessory(call) { _ in }
+            plugin.cancelSearchBluetoothPrinter(cancel)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                XCTAssertEqual(rejections, 1)
+                finished.fulfill()
+            }
+        }
+        wait(for: [finished], timeout: 3)
+    }
+}
+
 class PrintImageValidationTests: XCTestCase {
     func testInvalidImagesRejectBeforeOpeningPrinter() {
         for image in ["", "A", "SGVsbG8=", "iVBORw0KGgo="] {

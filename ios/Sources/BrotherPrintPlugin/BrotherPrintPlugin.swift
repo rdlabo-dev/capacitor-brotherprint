@@ -19,6 +19,8 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
     ]
     private var cancelRoutineWiFi: (() -> Void)?
     private var cancelRoutineBluetooth: (() -> Void)?
+    private var bluetoothAccessoryPickerActive = false
+    private var cancelAccessorySearch: (() -> Void)?
 
     @objc func printImage(_ call: CAPPluginCall) {
         let encodedImage: String = call.getString("encodedImage", "")
@@ -210,16 +212,7 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             if searcher.channels.isEmpty {
                 DispatchQueue.main.async {
-                    BRLMPrinterSearcher.startBluetoothAccessorySearch { result in
-                        guard result.error.code == BRLMPrinterSearchErrorCode.noError else {
-                            call.reject("Error - startBluetoothAccessorySearch: " + PrinterSearchErrorModel.fetchChannelErrorCode(error: result.error.code))
-                            return
-                        }
-                        for channel in result.channels {
-                            self.notifyListeners(BrotherPrinterEvent.onPrinterAvailable.rawValue, data: self.chanelToPrinter(port: "bluetooth", channel: channel))
-                        }
-                        call.resolve()
-                    }
+                    self.searchBluetoothAccessory(call)
                 }
                 return
             }
@@ -230,6 +223,50 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         }
 
+    }
+
+    func searchBluetoothAccessory(
+        _ call: CAPPluginCall,
+        startSearch: (@escaping (BRLMPrinterSearchResult) -> Void) -> Void = BRLMPrinterSearcher.startBluetoothAccessorySearch
+    ) {
+        guard !self.bluetoothAccessoryPickerActive else {
+            call.reject("Bluetooth accessory picker is still open. Close it before searching again.")
+            return
+        }
+        self.bluetoothAccessoryPickerActive = true
+        // Only the OS callback closes the picker; timeout/cancellation ends our wait, not the system UI.
+        var finished = false
+        let finish = { () -> Bool in
+            guard !finished else { return false }
+            finished = true
+            self.cancelAccessorySearch = nil
+            return true
+        }
+        let timeout = DispatchWorkItem {
+            guard finish() else { return }
+            call.reject("Bluetooth accessory search timed out. Close the accessory picker before retrying.")
+        }
+        self.cancelAccessorySearch = {
+            guard finish() else { return }
+            timeout.cancel()
+            call.reject("Bluetooth accessory search cancelled.")
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double(max(1, call.getInt("searchDuration", 15))), execute: timeout)
+        startSearch { result in
+            DispatchQueue.main.async {
+                self.bluetoothAccessoryPickerActive = false
+                guard finish() else { return }
+                timeout.cancel()
+                guard result.error.code == BRLMPrinterSearchErrorCode.noError else {
+                    call.reject("Error - startBluetoothAccessorySearch: " + PrinterSearchErrorModel.fetchChannelErrorCode(error: result.error.code))
+                    return
+                }
+                for channel in result.channels {
+                    self.notifyListeners(BrotherPrinterEvent.onPrinterAvailable.rawValue, data: self.chanelToPrinter(port: "bluetooth", channel: channel))
+                }
+                call.resolve()
+            }
+        }
     }
 
     private func searchBLEPrinter(_ call: CAPPluginCall) {
@@ -280,10 +317,13 @@ public class BrotherPrintPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func cancelSearchBluetoothPrinter(_ call: CAPPluginCall) {
-        DispatchQueue.global().async {
-            self.cancelRoutineBluetooth?()
-            self.cancelRoutineBluetooth = nil
-            call.resolve()
+        DispatchQueue.main.async {
+            self.cancelAccessorySearch?()
+            DispatchQueue.global().async {
+                self.cancelRoutineBluetooth?()
+                self.cancelRoutineBluetooth = nil
+                call.resolve()
+            }
         }
     }
 }

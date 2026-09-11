@@ -165,7 +165,8 @@ export type BRLMSearchOption = {
   /**
    * searchDuration is the time to end search for devices.
    * default is 15 seconds.
-   * use only port is 'wifi' or 'bluetoothLowEnergy'.
+   * Used for Wi-Fi, BLE, and the iOS Bluetooth accessory picker wait.
+   * Timing out does not dismiss the system accessory picker; close it before retrying.
    */
   searchDuration: number;
   /**
